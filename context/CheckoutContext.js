@@ -5,6 +5,7 @@ const CheckoutContext = createContext();
 export function CheckoutProvider({ children }) {
     const [cartData, setCartData] = useState(null);
     const [shippingAddress, setShippingAddress] = useState(null);
+    const [savedAddresses, setSavedAddresses] = useState([]);
     const [paymentDetails, setPaymentDetails] = useState(null);
 
     const updateCart = (data) => {
@@ -18,14 +19,27 @@ export function CheckoutProvider({ children }) {
         }
     };
 
+    const saveNewAddress = (address) => {
+        const newAddresses = [...savedAddresses, address];
+        setSavedAddresses(newAddresses);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('savedAddresses', JSON.stringify(newAddresses));
+        }
+    };
+
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const savedAddress = localStorage.getItem('shippingAddress');
             if (savedAddress) {
-                // try catch in case it's invalid JSON
                 try {
-                    // eslint-disable-next-line react-hooks/set-state-in-effect
                     setShippingAddress(JSON.parse(savedAddress));
+                } catch (e) { }
+            }
+
+            const storedAddresses = localStorage.getItem('savedAddresses');
+            if (storedAddresses) {
+                try {
+                    setSavedAddresses(JSON.parse(storedAddresses));
                 } catch (e) { }
             }
         }
@@ -52,6 +66,8 @@ export function CheckoutProvider({ children }) {
                 updateCart,
                 shippingAddress,
                 updateShippingAddress,
+                savedAddresses,
+                saveNewAddress,
                 paymentDetails,
                 setPaymentDetails,
                 clearCheckout,
